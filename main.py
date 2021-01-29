@@ -7,7 +7,7 @@ import pickle
 import plotly.express as px 
 
 from utils.utils import *
-
+from utils.roberta import *
 
 
 """
@@ -46,8 +46,55 @@ data.to_pickle('./bkp/data.pkl')
 #### EDA
 data = pd.read_pickle("data.pkl")
 
+
+
+#### Sentiment Analysis
+'''
+## VADER Sentiment extraction
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+analyser = SentimentIntensityAnalyzer()
+
+def vader_preproc(text):
+    new_text = re.sub(r'http[s]?://(?:[a-z]|[0-9]|[$-_@.&amp;+]|[!*\(\),]|(?:%[0-9a-f][0-9a-f]))+', '', text) #urls
+    new_text = re.sub(r'(?:@[\w_]+)', '', new_text) #mentions
+    new_text = re.sub(r'(?:\#+[\w_]+[\w\'_\-]*[\w_]+)', '', new_text) # hash-tags
+    return new_text.strip()
+
+analyser.polarity_scores(vader_preproc(data.text[0]))
+'''
+
+
+## Twitter-RoBERTa-sentiment extraction
+#get_roberta_sentiment(data.text)
+
+
+
+
+
+
 import pdb; pdb.set_trace()
 
 
 
-#### Sentiment Analysis
+
+## BERTtweet embedding
+import torch
+from transformers import AutoModel, AutoTokenizer 
+#import tensorflow as tf
+#tf.get_logger().setLevel(logging.ERROR)
+
+model_name="vinai/bertweet-base"
+#model_name="vinai/bertweet-covid19-base-cased"
+bertweet = AutoModel.from_pretrained(model_name)
+# Con il campo normalization viene applicata la normalizzazione definita dagli autori, visualizzabile anche qua:
+# https://github.com/VinAIResearch/BERTweet/blob/master/TweetNormalizer.py
+tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=False, normalization=True)
+
+import pdb; pdb.set_trace()
+# INPUT TWEET IS ALREADY NORMALIZED!
+line = "SC has first two presumptive cases of coronavirus , DHEC confirms HTTPURL via @USER :cry:"
+
+input_ids = torch.tensor([tokenizer.encode(line)])
+
+with torch.no_grad():
+    features = bertweet(input_ids)  # Models outputs are now tuples
