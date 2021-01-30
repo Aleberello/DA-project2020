@@ -23,9 +23,9 @@ def get_countries(df):
         '''
         Carica i dizionari utilizzati per la standardizzazione della locations
         '''
-        cities = pd.read_csv('./utils/world-cities.csv')
-        usa_states = pd.read_csv('./utils/usa-countries-code.csv')
-        countries_raw = pd.read_csv('./utils/country_iso_codes_expanded.csv')
+        cities = pd.read_csv('./utils/world-datasets/world-cities.csv')
+        usa_states = pd.read_csv('./utils/world-datasets/usa-countries-code.csv')
+        countries_raw = pd.read_csv('./utils/world-datasets/country_iso_codes_expanded.csv')
         countries = countries_raw.drop(countries_raw.columns[4],axis=1)
         countries.fillna('None')
         countries.rename(columns={'Alpha-2 code': 'code2', 'Alpha-3 code': 'code3'}, inplace=True)

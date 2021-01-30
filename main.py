@@ -14,8 +14,8 @@ from utils.roberta import *
 
 #### Caricamento dati
 ## Caricamento datasets
-pfizer = pd.read_csv('datasets/vaccination_tweets.csv', parse_dates=[4,9], infer_datetime_format=True)
-vacc = pd.read_csv('datasets/covidvaccine.csv', parse_dates=[3,8], infer_datetime_format=True)
+pfizer = pd.read_csv('datasets/src/vaccination_tweets.csv', parse_dates=[4,9], infer_datetime_format=True)
+vacc = pd.read_csv('datasets/src/covidvaccine.csv', parse_dates=[3,8], infer_datetime_format=True)
 
 ## Join dei dataset
 comb = pd.concat([pfizer[vacc.columns], vacc], ignore_index=True)
@@ -44,7 +44,7 @@ data.to_pickle('./bkp/data.pkl')
 
 """
 #### EDA
-data = pd.read_pickle("data.pkl")
+data = pd.read_pickle("datasets/data.pkl")
 
 
 
