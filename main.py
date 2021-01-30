@@ -44,7 +44,12 @@ data.to_pickle('./bkp/data.pkl')
 #### EDA
 data = pd.read_pickle("data/data.pkl")
 
+## Locations
 
+
+
+
+import pdb; pdb.set_trace()
 
 
 
