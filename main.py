@@ -37,6 +37,9 @@ data = data.fillna('None')
 ## Standardizzazione locations
 data['country'] = get_countries(data['user_location'])
 
+## Interpretazione array hashtags
+data['hashtags'] = data.hashtags.apply(eval)
+
 ## Salvataggio dati
 data.to_pickle('./bkp/data.pkl')
 """
@@ -44,7 +47,9 @@ data.to_pickle('./bkp/data.pkl')
 #### EDA
 data = pd.read_pickle("data/data.pkl")
 
-## Locations
+import pdb; pdb.set_trace()
+
+
 
 
 
