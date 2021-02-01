@@ -44,33 +44,10 @@ data['hashtags'] = data.hashtags.apply(eval)
 data.to_pickle('./bkp/data.pkl')
 """
 
-#### EDA
+#### SENTIMENT EXTRACTION
 data = pd.read_pickle("data/data.pkl")
 
-import pdb; pdb.set_trace()
 
-
-
-
-
-
-import pdb; pdb.set_trace()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#### SENTIMENT EXTRACTION
-'''
 ## VADER Sentiment extraction
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 analyser = SentimentIntensityAnalyzer()
@@ -81,10 +58,42 @@ def vader_preproc(text):
     new_text = re.sub(r'(?:\#+[\w_]+[\w\'_\-]*[\w_]+)', '', new_text) # hash-tags
     return new_text.strip()
 
-analyser.polarity_scores(vader_preproc(data.text[0]))
+def get_vader_sent(score):
+    if score>=0.05:
+        return 'Positive'
+    elif score<=(-0.05):
+        return 'Negative'
+    else:
+        return 'Neutral'
+
+    
+
+import pdb;pdb.set_trace()
+
+texts = pd.DataFrame(data['text'])
+texts['text-clean'] = texts['text'].apply(lambda x : vader_preproc(x))
+texts['score'] = texts['text-clean'].apply(lambda x : analyser.polarity_scores(x)['compound'])
+texts['sentiment'] = texts['score'].apply(get_vader_sent)
+scores=[]
+for i in range(len(texts['text-clean'])):
+    
+    score = analyser.polarity_scores(texts['text-clean'][i])
+    score=score['compound']
+    scores.append(score)
+
+sentiment=[]
+for i in scores:
+    if i>=0.05:
+        sentiment.append('Positive')
+    elif i<=(-0.05):
+        sentiment.append('Negative')
+    else:
+        sentiment.append('Neutral')
+data['sentiment']=pd.Series(np.array(sentiment))
 
 
 
+'''
 ## Twitter-RoBERTa-sentiment extraction
 get_roberta_sentiment(data.text)
 

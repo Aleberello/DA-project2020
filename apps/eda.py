@@ -1,4 +1,3 @@
-
 import pandas as pd
 import numpy as np
 import pickle
@@ -144,6 +143,7 @@ def hashtagsBar(data):
                     annotation_position="top right")
     return figBar
 
+
 def topHashtagsBar(data):
     df = data.hashtags.apply(eval)
     df = df.dropna()
@@ -176,6 +176,7 @@ def textWordcloud(data):
     return fig
 
 
+
 ## Page layout
 layout = dbc.Container([
     dbc.Row(
@@ -186,11 +187,11 @@ layout = dbc.Container([
         className='py-3 mb-3 bg-dark shadow rounded',
     ),
     dbc.Tabs([
-            dbc.Tab(label="Utenti", tab_id="tab-1"),
-            dbc.Tab(label="Tweets", tab_id="tab-2"),
+            dbc.Tab(label="Utenti", tab_id="tab-1-eda"),
+            dbc.Tab(label="Tweets", tab_id="tab-2-eda"),
         ],
         id="tabs-eda",
-        active_tab="tab-2",
+        active_tab="tab-1-eda",
         className='shadow rounded-top'
     ),
     html.Div(id="tabs-eda-content"),
@@ -352,7 +353,7 @@ def updateTag(value):
 @app.callback(Output('tabs-eda-content', 'children'),
               [Input('tabs-eda', 'active_tab')])
 def render_content(tab):
-    if tab == 'tab-1':
+    if tab == 'tab-1-eda':
         return users_layout
-    elif tab == 'tab-2':
+    elif tab == 'tab-2-eda':
         return tweets_layout

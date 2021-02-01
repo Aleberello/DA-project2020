@@ -22,7 +22,31 @@ app.layout = html.Div([
             sticky='Top',
             className='shadow mb-3'
         ),
-    dbc.Spinner(id="loading-content", fullscreen=True)
+    dbc.Spinner(id="loading-content", fullscreen=True),
+    html.Footer(
+        dbc.Row([
+            dbc.Col(
+                html.Img(
+                    src='https://upload.wikimedia.org/wikipedia/it/thumb/7/7d/Logo_Universit%C3%A0_Milano-Bicocca.svg/1200px-Logo_Universit%C3%A0_Milano-Bicocca.svg.png',
+                    style={
+                        'max-width' : '30%',
+                        'padding-top' : 0,
+                        'padding-right' : 0
+                    }
+                ),
+                width=1,
+                align='center',
+                className='m-0 p-0 text-right'
+            ),
+            dbc.Col([
+                html.P('Università di Milano-Bicocca', className='text-light mb-0 small'),
+                html.P('Alessandro Bertolo (808314) - a.bertolo2@campus.unimib.it', className='text-light mb-0 small')
+            ],
+            align='center'
+            )
+        ]),
+        className="bg-dark px-5 py-3 position-sticky bottom-0",
+    ),
 ], className="bg-light")
 
 @app.callback(Output('loading-content', 'children'),
