@@ -19,7 +19,7 @@ data = pd.read_pickle("data/data.pkl")
 
 num_usr = len(data.user_name.unique())
 num_tweets = len(data.text.unique())
-hashtags = data.hashtags.apply(eval).dropna().explode().value_counts().head(50).index.tolist() #top-50 hashtags list
+hashtags = data.hashtags.dropna().explode().value_counts().head(50).index.tolist() #top-50 hashtags list
 num_words = round(data.text.apply(lambda x: len(x.split())).mean())
 
 
@@ -110,8 +110,7 @@ def tweetTimeLine(data, tag):
     df = df.sort_values('DATE')
     figLine = px.line(df, x='DATE', y='COUNT', title='Numero di tweets nel tempo')
 
-    df2 = data.hashtags.apply(eval)
-    df2 = df2.dropna()
+    df2 = data.hashtags.dropna()
     idx = df2.apply(lambda x: True if tag in x else False)
     df2 = data.loc[idx.index[idx==True].tolist()]
     df2 = df2.date.dt.date.value_counts().reset_index()
@@ -124,7 +123,7 @@ def tweetTimeLine(data, tag):
 
 
 def hashtagsBar(data):
-    df = data.hashtags.apply(eval)
+    df = data.hashtags
     zero = len(df)-df.isnull().sum()
     df = df.dropna()
     df = df.apply(lambda x: len(x)).value_counts().reset_index()
@@ -145,8 +144,7 @@ def hashtagsBar(data):
 
 
 def topHashtagsBar(data):
-    df = data.hashtags.apply(eval)
-    df = df.dropna()
+    df = data.hashtags.dropna()
     df = df.explode().value_counts().reset_index().head(10)
     df.columns=['HASHTAG','COUNT']
 

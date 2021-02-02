@@ -37,7 +37,7 @@ def get_countries(df):
         '''           
         new_text = re.sub(r'http[s]?://(?:[a-z]|[0-9]|[$-_@.&amp;+]|[!*\(\),]|(?:%[0-9a-f][0-9a-f]))+', '', text) #urls
         new_text = re.sub(r'(?:@[\w_]+)', '', new_text) #mentions
-        new_text = re.sub(r'(?:\#+[\w_]+[\w\'_\-]*[\w_]+)', '', new_text) # hash-tags
+        new_text = re.sub(r'(?:\#+[\w_]+[\w\'_\-]*[\w_]+)', '', new_text) #hash-tags
         new_text = re.sub(r'—|’|’’|-|”|“|‘', ' ', new_text) #separators and quotes
         new_text = new_text.strip()
         new_text = re.sub(r'(?:(?:\d+,?)+(?:\.?\d+)?)', '', new_text) #numbers

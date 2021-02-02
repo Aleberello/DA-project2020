@@ -1,10 +1,14 @@
 import torch
-import numpy as np
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' # Suppress tf cuda warning
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 from scipy.special import softmax
+import numpy as np
 import pandas as pd
 import csv
 import urllib.request
+import re
+from tqdm import tqdm
 
 
 def download_labels():
@@ -20,9 +24,12 @@ def download_labels():
 
 def rob_preproc(text):
     '''
-    Funzione di preprocessing definita dagli autori
+    Funzione di preprocessing definita dagli autori ed utilizzata anche per il training del modello.
+    Sotituisce le menzioni e i link con delle keyword.
+    Aggiunta solamente la rimozione degli escape.
     '''
     new_text = []
+    text = re.sub(r'[\n\r\t]', '', text) #char escapes
     for t in text.split(" "):
         t = '@user' if t.startswith('@') and len(t) > 1 else t
         t = 'http' if t.startswith('http') else t
@@ -37,16 +44,16 @@ def get_roberta_sentiment(texts):
     MODEL = "cardiffnlp/twitter-roberta-base-sentiment"
     labels = {'LABEL_0':'Negative','LABEL_1':'Neutral','LABEL_2':'Positive'}
 
+    ## Model loading and setup
     tokenizer = AutoTokenizer.from_pretrained(MODEL)
     model = AutoModelForSequenceClassification.from_pretrained(MODEL)
     pipel = pipeline('sentiment-analysis', model=model, tokenizer=tokenizer, return_all_scores=False)
+    print('Model loaded.')
 
-    import pdb; pdb.set_trace()
-
-    dftext = pd.DataFrame(texts[0:100])
-    dftext['prep_text'] = dftext.text.apply(rob_preproc)
-
-    sentiments = dftext.prep_text.apply(pipel)
+    ## Sentiment extraction
+    tqdm.pandas()
+    texts['text-clean'] = texts['text'].progress_apply(rob_preproc)
+    sentiments = texts['text-clean'].progress_apply(pipel)
 
     senti_labels = []
     senti_scores = []
@@ -54,10 +61,10 @@ def get_roberta_sentiment(texts):
         senti_labels.append(labels[row[0]['label']])
         senti_scores.append(np.round(row[0]['score'], 4))
 
-    dftext['sentiment'] = senti_labels
-    dftext['score'] = senti_scores
+    texts['score'] = senti_scores
+    texts['sentiment'] = senti_labels
 
-    return dftext
+    return texts
 
     #text = "Good night 😊"
     #text = rob_preproc(text)

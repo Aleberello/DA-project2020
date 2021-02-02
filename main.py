@@ -9,8 +9,7 @@ from utils.roberta import *
 
 import plotly.express as px 
 
-
-"""
+'''
 #### CARICAMENTO DATI
 ## Caricamento datasets
 pfizer = pd.read_csv('data/src/vaccination_tweets.csv', parse_dates=[4,9], infer_datetime_format=True)
@@ -23,9 +22,9 @@ comb = pd.concat([pfizer[vacc.columns], vacc], ignore_index=True)
 data = comb.drop_duplicates(subset=['user_name','date','text'], keep='first', ignore_index=True)
 
 #### ANALISI PRELIMINARE DATI RAW
-data.head()
-data.shape
-data.dtypes
+#data.head()
+#data.shape
+#data.dtypes
 data.info()
 
 #### DATA CLEANING
@@ -41,24 +40,35 @@ data['country'] = get_countries(data['user_location'])
 data['hashtags'] = data.hashtags.apply(eval)
 
 ## Salvataggio dati
-data.to_pickle('./bkp/data.pkl')
-"""
+data.to_pickle('./data/data.pkl')
+
+'''
+
 
 #### SENTIMENT EXTRACTION
 data = pd.read_pickle("data/data.pkl")
 
-
 ## VADER Sentiment extraction
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-analyser = SentimentIntensityAnalyzer()
+vader_analyzer = SentimentIntensityAnalyzer()
 
 def vader_preproc(text):
+    '''
+    Preprocessing basico del testo.
+    Dato che il metodo è sensibile a caps, emoji, punteggiatura, slang ed in generale a messaggi di tipo "social"
+    vengono solo rimossi gli url, le menzioni e gli hashtags.
+    '''
     new_text = re.sub(r'http[s]?://(?:[a-z]|[0-9]|[$-_@.&amp;+]|[!*\(\),]|(?:%[0-9a-f][0-9a-f]))+', '', text) #urls
     new_text = re.sub(r'(?:@[\w_]+)', '', new_text) #mentions
-    new_text = re.sub(r'(?:\#+[\w_]+[\w\'_\-]*[\w_]+)', '', new_text) # hash-tags
+    new_text = re.sub(r'(?:\#+[\w_]+[\w\'_\-]*[\w_]+)', '', new_text) #hash-tags
+    new_text = re.sub(r'[\n\r\t]', '', new_text) #char escapes
     return new_text.strip()
 
 def get_vader_sent(score):
+    '''
+    Estrae la label del sentiment dallo score compound estratto dall'analyzer Vader, le soglie sono quelle consigliate
+    dagli autori del metodo.
+    '''
     if score>=0.05:
         return 'Positive'
     elif score<=(-0.05):
@@ -66,39 +76,29 @@ def get_vader_sent(score):
     else:
         return 'Neutral'
 
-    
 
-import pdb;pdb.set_trace()
+vsent = pd.DataFrame(data['text'])
+vsent['text-clean'] = vsent['text'].apply(lambda x : vader_preproc(x))
+vsent['score'] = vsent['text-clean'].apply(lambda x : vader_analyzer.polarity_scores(x)['compound'])
+vsent['sentiment'] = vsent['score'].apply(get_vader_sent)
 
+vsent.to_pickle('./data/vader_sent.pkl')
+
+
+## Twitter-RoBERTa Sentiment Extraction
 texts = pd.DataFrame(data['text'])
-texts['text-clean'] = texts['text'].apply(lambda x : vader_preproc(x))
-texts['score'] = texts['text-clean'].apply(lambda x : analyser.polarity_scores(x)['compound'])
-texts['sentiment'] = texts['score'].apply(get_vader_sent)
-scores=[]
-for i in range(len(texts['text-clean'])):
-    
-    score = analyser.polarity_scores(texts['text-clean'][i])
-    score=score['compound']
-    scores.append(score)
+rsent = get_roberta_sentiment(texts)
 
-sentiment=[]
-for i in scores:
-    if i>=0.05:
-        sentiment.append('Positive')
-    elif i<=(-0.05):
-        sentiment.append('Negative')
-    else:
-        sentiment.append('Neutral')
-data['sentiment']=pd.Series(np.array(sentiment))
+rsent.to_pickle('./data/roberta_sent.pkl')
+
+
+
+
+
 
 
 
 '''
-## Twitter-RoBERTa-sentiment extraction
-get_roberta_sentiment(data.text)
-
-
-
 ## BERTtweet embedding and K-Means
 import torch
 from transformers import AutoModel, AutoTokenizer 
