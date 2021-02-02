@@ -49,6 +49,7 @@ app.layout = html.Div([
     ),
 ], className="bg-light")
 
+## Callbacks
 @app.callback(Output('loading-content', 'children'),
               Input('url', 'pathname'))
 def display_page(pathname):

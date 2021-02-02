@@ -57,7 +57,7 @@ rsent = get_roberta_sentiment(texts)
 #rsent.to_pickle('./data/roberta_sent.pkl')
 
 '''
-
+'''
 #### CARICAMENTO DATI AUSILIARI
 
 ### Andamento della campagna vaccinale mondiale
@@ -101,7 +101,12 @@ for data in test.index.tolist():
 
 sperem = pd.DataFrame({'date':date, 'iso_code':paesi,'death':morti})
 import pdb; pdb.set_trace()
+'''
 
+data = pd.read_pickle("data/data.pkl")
+vader_sent = pd.read_pickle("data/vader_sent.pkl")
+roberta_sent = pd.read_pickle("data/roberta_sent.pkl")
+import pdb; pdb.set_trace()
 
 
 

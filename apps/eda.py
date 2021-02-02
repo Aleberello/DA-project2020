@@ -333,6 +333,15 @@ tweets_layout = dbc.Container([
 
 
 ## Callbacks
+# Tab switcher
+@app.callback(Output('tabs-eda-content', 'children'),
+              [Input('tabs-eda', 'active_tab')])
+def render_content(tab):
+    if tab == 'tab-1-eda':
+        return users_layout
+    elif tab == 'tab-2-eda':
+        return tweets_layout
+
 # Bar plot slider
 @app.callback(
     Output('slider-followers-bar', 'figure'),
@@ -346,12 +355,3 @@ def updateFollowers(value):
     [Input('dropdown-hashtag', 'value')])
 def updateTag(value):
     return tweetTimeLine(data,value)
-
-# Tab switcher
-@app.callback(Output('tabs-eda-content', 'children'),
-              [Input('tabs-eda', 'active_tab')])
-def render_content(tab):
-    if tab == 'tab-1-eda':
-        return users_layout
-    elif tab == 'tab-2-eda':
-        return tweets_layout
