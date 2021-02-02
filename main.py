@@ -1,13 +1,12 @@
-### Libraries import
+#### IMPORT LIBRERIE
 import numpy as np
 import pandas as pd
 pd.set_option('display.max_columns', None)
 import pickle
 
-from utils.utils import *
-from utils.roberta import *
+from utils.utils import get_countries
+from utils.sentiment_extraction import get_vader_sentiment, get_roberta_sentiment
 
-import plotly.express as px 
 
 '''
 #### CARICAMENTO DATI
@@ -21,11 +20,13 @@ comb = pd.concat([pfizer[vacc.columns], vacc], ignore_index=True)
 ## Rimozione eventuali duplicati basandosi su text, user_name e date
 data = comb.drop_duplicates(subset=['user_name','date','text'], keep='first', ignore_index=True)
 
+
 #### ANALISI PRELIMINARE DATI RAW
 #data.head()
 #data.shape
 #data.dtypes
 data.info()
+
 
 #### DATA CLEANING
 ## Gestione valori nulli
@@ -40,66 +41,73 @@ data['country'] = get_countries(data['user_location'])
 data['hashtags'] = data.hashtags.apply(eval)
 
 ## Salvataggio dati
-data.to_pickle('./data/data.pkl')
-
-'''
+#data.to_pickle('./data/data.pkl')
 
 
 #### SENTIMENT EXTRACTION
 data = pd.read_pickle("data/data.pkl")
+texts = pd.DataFrame(data['text'])
 
 ## VADER Sentiment extraction
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-vader_analyzer = SentimentIntensityAnalyzer()
-
-def vader_preproc(text):
-    '''
-    Preprocessing basico del testo.
-    Dato che il metodo è sensibile a caps, emoji, punteggiatura, slang ed in generale a messaggi di tipo "social"
-    vengono solo rimossi gli url, le menzioni e gli hashtags.
-    '''
-    new_text = re.sub(r'http[s]?://(?:[a-z]|[0-9]|[$-_@.&amp;+]|[!*\(\),]|(?:%[0-9a-f][0-9a-f]))+', '', text) #urls
-    new_text = re.sub(r'(?:@[\w_]+)', '', new_text) #mentions
-    new_text = re.sub(r'(?:\#+[\w_]+[\w\'_\-]*[\w_]+)', '', new_text) #hash-tags
-    new_text = re.sub(r'[\n\r\t]', '', new_text) #char escapes
-    return new_text.strip()
-
-def get_vader_sent(score):
-    '''
-    Estrae la label del sentiment dallo score compound estratto dall'analyzer Vader, le soglie sono quelle consigliate
-    dagli autori del metodo.
-    '''
-    if score>=0.05:
-        return 'Positive'
-    elif score<=(-0.05):
-        return 'Negative'
-    else:
-        return 'Neutral'
-
-
-vsent = pd.DataFrame(data['text'])
-vsent['text-clean'] = vsent['text'].apply(lambda x : vader_preproc(x))
-vsent['score'] = vsent['text-clean'].apply(lambda x : vader_analyzer.polarity_scores(x)['compound'])
-vsent['sentiment'] = vsent['score'].apply(get_vader_sent)
-
-vsent.to_pickle('./data/vader_sent.pkl')
-
+vsent = get_vader_sentiment(texts)
+#vsent.to_pickle('./data/vader_sent.pkl')
 
 ## Twitter-RoBERTa Sentiment Extraction
-texts = pd.DataFrame(data['text'])
 rsent = get_roberta_sentiment(texts)
+#rsent.to_pickle('./data/roberta_sent.pkl')
 
-rsent.to_pickle('./data/roberta_sent.pkl')
+'''
 
+#### CARICAMENTO DATI AUSILIARI
 
+### Andamento della campagna vaccinale mondiale
+vaccinations = pd.read_csv('data/src/pandemy-data/country_vaccinations.csv', 
+                            usecols=['country','iso_code','date','total_vaccinations','daily_vaccinations','vaccines'],
+                            parse_dates=['date'], infer_datetime_format=True)
 
+## Gestione valori nulli
+vaccinations.isnull().sum()
+# Gestione valori nulli codice paesi
+vaccinations[vaccinations['iso_code'].isnull()].country.unique() # tutti inerenti a stati della Gran Bretagna
+vaccinations = vaccinations.dropna(subset=['iso_code'])
+vaccinations = vaccinations.fillna(0)
 
+### Andamento dell'epidemia
+cases = pd.read_csv('data/src/pandemy-data/time_series_covid19_confirmed_global.csv')
+#recovered = pd.read_csv('data/src/pandemy-data/time_series_covid19_recovered_global.csv')
+#death = pd.read_csv('data/src/pandemy-data/time_series_covid19_deaths_global.csv')
+look_tbl = pd.read_csv('data/src/pandemy-data/UID_ISO_FIPS_LookUp_Table.csv')
+
+## 
+look_tbl = look_tbl.drop_duplicates(subset=['Country_Region'], keep='first', ignore_index=True).set_index('Country_Region')
+
+cases['iso_code'] = cases['Country/Region'].apply(lambda x : look_tbl.loc[x].iso3)
+cases = cases.dropna(subset=['iso_code']) # rimuove elementi non riconducibili a paesi
+cases = cases.drop(columns=['Province/State','Lat','Long', 'Country/Region'])
+cases = cases.groupby('iso_code').sum() # raggruppa per iso_code
+
+import pdb; pdb.set_trace()
+
+test = cases.T
+
+date = []
+paesi = []
+morti = []
+for data in test.index.tolist():
+    tmp = test.loc[data]
+    date.extend([data]*len(tmp))
+    paesi.extend(tmp.index.tolist())
+    morti.extend(tmp.values.tolist())
+
+sperem = pd.DataFrame({'date':date, 'iso_code':paesi,'death':morti})
+import pdb; pdb.set_trace()
 
 
 
 
 '''
-## BERTtweet embedding and K-Means
+#### SVILUPPI FUTURI
+## Estrazione BERTtweet sentence embedding e K-Means per identificare cluster e sentiment
 import torch
 from transformers import AutoModel, AutoTokenizer 
 
@@ -110,12 +118,8 @@ bertweet = AutoModel.from_pretrained(model_name)
 # Con il campo normalization viene applicata la normalizzazione definita dagli autori, visualizzabile anche qua:
 # https://github.com/VinAIResearch/BERTweet/blob/master/TweetNormalizer.py
 tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=False, normalization=True)
-
-import pdb; pdb.set_trace()
-
 input_ids = torch.tensor([tokenizer.encode(line)])
 
 with torch.no_grad():
     features = bertweet(input_ids)  # Models outputs are now tuples
-
 '''

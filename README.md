@@ -42,7 +42,7 @@ Il file `main.py` contiene tutte le operazioni effettuate sui dati gerzzi, in pa
 1. Caricamento dei dati -> merging dei due dataset
 2. Data cleaning -> gestione tipi di dato e valori nulli, standardizazione di attributi
 3. Sentiment extraction -> estrazione del sentiment utilizzando due tecniche rule-based (Vader e Roberta tramite la libreria `transformers`)
-4. Caricamento dati correlati -> dataset riferiti all'andamento dell'epidemia e della campagna vaccinale mondiale
+4. Caricamento dati ausiliari -> dataset riferiti all'andamento dell'epidemia e della campagna vaccinale mondiale
 
 I dataframe ottenuti vengono salvati nella cartella `"data/"` come oggetti *pickle*.
 
