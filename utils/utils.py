@@ -10,17 +10,6 @@ from nltk.corpus import stopwords
 #nltk.download('wordnet')
 
 
-
-def deEmojify(text):
-    regrex_pattern = re.compile(pattern = "["
-        u"\U0001F600-\U0001F64F"  # emoticons
-        u"\U0001F300-\U0001F5FF"  # symbols & pictographs
-        u"\U0001F680-\U0001F6FF"  # transport & map symbols
-        u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
-                           "]+", flags = re.UNICODE)
-    return regrex_pattern.sub(r'',text)
-
-
 def get_tokens(text):
     '''
     Tokenizer per il campo text dei tweets estratti, utilizzati nelle visualizzazioni.
@@ -49,6 +38,7 @@ def get_tokens(text):
     new_text = [item for item in new_text if item not in stops] #stop-words
     new_text = [lemmatizer.lemmatize(word) for word in new_text]
     return new_text
+
 
 
 def get_countries(df):
@@ -139,7 +129,6 @@ def get_countries(df):
         print(row, '->', str(tmp))
         return tmp
 
-    
 
     # Caricamento dizionario dei paesi, città e stati usa
     countries, cities, usa_states = get_codes()

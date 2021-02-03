@@ -39,7 +39,7 @@ app.layout = html.Div([
                 className='m-0 p-0 text-right'
             ),
             dbc.Col([
-                html.P('Università di Milano-Bicocca', className='text-light mb-0 small'),
+                html.P('Università degli Studi di Milano-Bicocca', className='text-light mb-0 small'),
                 html.P('Alessandro Bertolo (808314) - a.bertolo2@campus.unimib.it', className='text-light mb-0 small')
             ],
             align='center'

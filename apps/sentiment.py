@@ -34,11 +34,10 @@ table_pol['polarity_change'] = tabledata[['sentiment_vader', 'sentiment_roberta'
                                         (x[0]=='Negative' and x[1]=='Positive') else False, axis=1)
 table_pol = table_pol.drop(table_pol[table_pol['polarity_change']==False].index).drop(columns=['polarity_change'])
 
-
-
 # Sentiment analysis table
 data_sent = data.copy()
 data_sent['sentiment'] = roberta_sent['sentiment']
+
 
 ## Functions
 def sentBar(data1, data2):

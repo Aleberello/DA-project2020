@@ -1,5 +1,5 @@
-# Sentiment exploration COVID19 vaccine tweets
-## Progetto corso Data Analytics a.a. 19-20
+# Sentiment analysis COVID19 vaccine tweets
+## Progetto Data Analytics, a.a. 19-20
 Alessandro Bertolo (808314) - a.bertolo2@campus.unimib.it
 
 ## Repo structure
