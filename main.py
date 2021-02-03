@@ -4,7 +4,7 @@ import pandas as pd
 pd.set_option('display.max_columns', None)
 import pickle
 
-from utils.utils import get_countries
+from utils.utils import get_countries, get_tokens
 from utils.sentiment_extraction import get_vader_sentiment, get_roberta_sentiment
 
 
@@ -40,8 +40,15 @@ data['country'] = get_countries(data['user_location'])
 ## Interpretazione array hashtags
 data['hashtags'] = data.hashtags.apply(eval)
 
+
+## Estrazione tokens dal campo text
+data_tokens = pd.DataFrame(data['text'])
+data_tokens['text-tokens'] = data_tokens['text'].apply(get_tokens)
+
+
 ## Salvataggio dati
 #data.to_pickle('./data/data.pkl')
+#data_tokens.to_pickle('./data/data_tokens.pkl')
 
 
 #### SENTIMENT EXTRACTION
@@ -57,6 +64,8 @@ rsent = get_roberta_sentiment(texts)
 #rsent.to_pickle('./data/roberta_sent.pkl')
 
 '''
+
+
 '''
 #### CARICAMENTO DATI AUSILIARI
 
@@ -106,8 +115,23 @@ import pdb; pdb.set_trace()
 data = pd.read_pickle("data/data.pkl")
 vader_sent = pd.read_pickle("data/vader_sent.pkl")
 roberta_sent = pd.read_pickle("data/roberta_sent.pkl")
-import pdb; pdb.set_trace()
 
+data_sent = data
+data_sent['sentiment'] = roberta_sent['sentiment']
+
+tabledata = vader_sent.join(roberta_sent, how='outer', lsuffix='_vader', 
+                            rsuffix='_roberta').drop(columns=['text-clean_vader', 'text_roberta','text-clean_roberta'])
+
+
+tabledata['comparison'] = tabledata[['sentiment_vader', 'sentiment_roberta']].apply(
+                                        lambda x: True if x[0]==x[1] else False, axis=1)
+
+polarity_change = tabledata[['sentiment_vader', 'sentiment_roberta']].apply(lambda x: True if (x[0]=='Positive' and x[1]=='Negative') or (x[0]=='Negative' and x[1]=='Positive') else False, axis=1)
+
+
+
+
+import pdb; pdb.set_trace()
 
 
 '''

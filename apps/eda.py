@@ -9,7 +9,6 @@ import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
 import plotly.express as px
 from wordcloud import WordCloud
-from utils.plotly_wordcloud import plotly_wordcloud as pwc
 
 from app import app
 
@@ -117,7 +116,9 @@ def tweetTimeLine(data, tag):
     df2.columns = ['DATE','COUNT']
     df2 = df2.sort_values('DATE')
 
-    figLine.add_scatter(x=df2.DATE, y=df2.COUNT, text=df2.COUNT, mode='lines', name=tag)
+    figLine.add_scatter(x=df2.DATE, y=df2.COUNT, mode='lines', name=tag)
+    figLine.update_traces(mode="markers+lines")
+    figLine.update_layout(hovermode="x unified")
 
     return figLine
 
@@ -161,11 +162,11 @@ def topHashtagsBar(data):
 
 
 def textWordcloud(data):
-    words_freq = data.text.str.split(expand=True).stack().value_counts()
-    #wc = pwc(' '.join(data.text.iloc[0:1000]))
-    #wc = WordCloud(width=480, height=360).generate(' '.join(data.text.iloc[0:1000]))
+    df = data.hashtags.dropna()
+    df = df.explode().value_counts()
+    #words_freq = data.text.str.split(expand=True).stack().value_counts()
     wc = WordCloud(width=800, height=400, background_color='white')
-    wc.generate_from_frequencies(words_freq)
+    wc.generate_from_frequencies(df)
     fig = px.imshow(wc)
     fig.update_layout(coloraxis_showscale=False)
     fig.update_xaxes(showticklabels=False)

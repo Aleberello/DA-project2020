@@ -40,11 +40,11 @@ Due dataset accorpati...
 L'elaborazione è finalizzata all'ottenimento di dataframe contenenti tutte le informazioni necessarie per la fase di visualizzazione e di analisi.
 Il file `main.py` contiene tutte le operazioni effettuate sui dati gerzzi, in particolare:
 1. Caricamento dei dati -> merging dei due dataset
-2. Data cleaning -> gestione tipi di dato e valori nulli, standardizazione di attributi
+2. Data cleaning -> gestione tipi di dato e valori nulli, standardizazione di attributi, estrazione tokens da campo text
 3. Sentiment extraction -> estrazione del sentiment utilizzando due tecniche rule-based (Vader e Roberta tramite la libreria `transformers`)
 4. Caricamento dati ausiliari -> dataset riferiti all'andamento dell'epidemia e della campagna vaccinale mondiale
 
-I dataframe ottenuti vengono salvati nella cartella `"data/"` come oggetti *pickle*.
+I dataframe ottenuti vengono salvati nella cartella `"data/"` come oggetti *pickle* per alleggerire il carico della dashboard per le visualizzazioni.
 
 #### Visualizzazione ed analisi
 Per la parte di visualizzazione ed analisi è stata implementata una Dashboard multipagina. Il file `index.py` è il punto di avvio per la dashboard. Le pagine che la compongono sono contenute nella cartella `"apps/"`.

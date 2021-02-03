@@ -1,8 +1,15 @@
 import pandas as pd
 import string
 import re
+import emoji
 import nltk
 from nltk.tokenize import WordPunctTokenizer
+from nltk.stem import WordNetLemmatizer 
+from nltk.corpus import stopwords
+#nltk.download('stopwords')
+#nltk.download('wordnet')
+
+
 
 def deEmojify(text):
     regrex_pattern = re.compile(pattern = "["
@@ -12,6 +19,36 @@ def deEmojify(text):
         u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
                            "]+", flags = re.UNICODE)
     return regrex_pattern.sub(r'',text)
+
+
+def get_tokens(text):
+    '''
+    Tokenizer per il campo text dei tweets estratti, utilizzati nelle visualizzazioni.
+    '''
+    lemmatizer = WordNetLemmatizer()
+
+    stops = stopwords.words('english')
+    # Dopo aver analizzato le parole più frequenti vengono aggiunti alcuni termini da scartare
+    stops =set(stops)
+    stops.add("amp")
+    stops.add("u")
+    stops.add("\u2026")
+    stops = list(stops)
+
+    new_text = text.lower()
+    new_text = re.sub(r'http[s]?://(?:[a-z]|[0-9]|[$-_@.&amp;+]|[!*\(\),]|(?:%[0-9a-f][0-9a-f]))+', '', new_text) #urls
+    new_text = re.sub(r'(?:@[\w_]+)', '', new_text) #mentions
+    new_text = re.sub(r'(?:\#+[\w_]+[\w\'_\-]*[\w_]+)', '', new_text) #hash-tags
+    new_text = re.sub(r'—|’|’’|-|”|“|‘', ' ', new_text) #separators and quotes
+    new_text = new_text.strip()
+    new_text = re.sub(r'(?:(?:\d+,?)+(?:\.?\d+)?)', '', new_text) #numbers
+    new_text = new_text.translate(str.maketrans('', '', string.punctuation)) #punteggiatura
+    new_text = re.sub(r'<[^>]+>', ' ', new_text) # HTML tags
+    new_text = re.sub(emoji.get_emoji_regexp(), ' ', new_text).strip() #emoji removal
+    new_text = WordPunctTokenizer().tokenize(new_text)
+    new_text = [item for item in new_text if item not in stops] #stop-words
+    new_text = [lemmatizer.lemmatize(word) for word in new_text]
+    return new_text
 
 
 def get_countries(df):
@@ -42,7 +79,7 @@ def get_countries(df):
         new_text = new_text.strip()
         new_text = re.sub(r'(?:(?:\d+,?)+(?:\.?\d+)?)', '', new_text) #numbers
         new_text = new_text.translate(str.maketrans('', '', string.punctuation)) #punteggiatura
-        new_text = deEmojify(new_text)
+        new_text = re.sub(emoji.get_emoji_regexp(), ' ', new_text).strip() #emoji removal
         new_text = WordPunctTokenizer().tokenize(new_text)
         return new_text
 
