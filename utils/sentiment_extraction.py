@@ -1,7 +1,5 @@
 import numpy as np
 import pandas as pd
-import csv
-import urllib.request
 import re
 from tqdm import tqdm
 
@@ -10,13 +8,14 @@ import torch
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' # Suppress tf cuda warning
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
-from scipy.special import softmax
-
 
 
 def get_vader_sentiment(texts):
     '''
-
+    Funzione utilizzata per estrarre il sentiment utilizzando il tool Vader, specificatamente costruito per lavorare con
+    testi provenienti da Social Networks.
+    La funzione prende in input una colonna dataframe di testi e restituisce in output un dataframe contenente i testi
+    di input, i testi processati con la funzione di preprocessing, lo score e il sentiment estratto.
     '''
 
     def vader_preproc(text):
@@ -54,17 +53,20 @@ def get_vader_sentiment(texts):
     return texts
 
 
-
-
 def get_roberta_sentiment(texts):
     '''
-
+    Funzione utilizzata per estrarre il sentiment utilizzando un modello RoBERTa addestrato su dataset contenenti
+    numerosi tweets e fine-tuned per il task di classificazione del sentiment data una frase.
+    La funzione prende in input una colonna dataframe di testi e restituisce in output un dataframe contenente i testi
+    di input, i testi processati con la funzione di preprocessing, lo score e il sentiment estratto.
     '''
 
     def download_labels():
         '''
         Funzione ausiliaria per il mapping delle label restituite dal modello, utilizzato solo come riferimento.
         '''
+        import urllib.request
+        import csv
         mapping_link = f"https://raw.githubusercontent.com/cardiffnlp/tweeteval/main/datasets/sentiment/mapping.txt"
         with urllib.request.urlopen(mapping_link) as f:
             html = f.read().decode('utf-8').split("\n")

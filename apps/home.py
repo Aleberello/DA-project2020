@@ -17,6 +17,12 @@ data = pd.read_pickle("data/data.pkl")
 layout = dbc.Container([
     dbc.Row(
         dbc.Col([
+            html.H1('Home', className='text-white'),
+        ]),
+        className='py-3 mb-3 bg-dark shadow rounded',
+    ),
+    dbc.Row(
+        dbc.Col([
             html.H4('Introduzione'),
             dcc.Markdown('''
                 Descrizione

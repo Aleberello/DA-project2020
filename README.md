@@ -2,41 +2,40 @@
 ## Progetto Data Analytics, a.a. 19-20
 Alessandro Bertolo (808314) - a.bertolo2@campus.unimib.it
 
-## Repo structure
+## Struttura del repository
 
 ```bash
-├── apps                        # extracted tweets for users and news
-│   ├── eda.py
-│   ├── home.py
-│   ├── misc.py
-│   └── sentiment.py
-├── data                  # Twitter API implementation for tweets extraction
-│   ├── src                         # Twitter API credentials
+├── apps/                           # contiene le pagine principali che compongono la dashboard delle visualizzazioni
+│   ├── eda.py                      # pagina per l'EDA
+│   ├── home.py                     # pagina di homepage
+│   ├── misc.py                     # 
+│   └── sentiment.py                # pagina del sentiment extraction e analysis
+├── data/                           # contiene i dataframe ottenuti
+│   ├── src/                        # contiene i csv dei dataset di partenza
+│       ├── pandemy-data/           # contiene i csv sull'andamento dell'epidemia e delle campagne vaccinali 
+│       |   └── ...
 │       ├── covidvaccine.csv
 │       └── vaccination_tweets.csv
-│   ├── data.pkl                   # tweets scraper
-│   ├── roberta_sent.pkl                   # tweets scraper
-│   └── vader_sent.pkl               # list of Twitter usernames from wich extract tweets
+│   ├── data_tokens.pkl             # dataframe contenente i token estratti dal tokenizer
+│   ├── data.pkl                    # dataframe del dataset ottenuto dopo il preprocessing
+│   ├── roberta_sent.pkl            # dataframe con il sentiment estratto tramite RoBERTa
+│   └── vader_sent.pkl              # dataframe con il sentiment estratto tramite Vader
 ├── utils                           # utils folder
-│   ├── world-datasets               # stores all already user tweets pre-processed for personalization in pickle files
+│   ├── geo-data                    # contiene i dataset utilizzati per la standardizzazione del campo user_location 
 │       └── ...
-│   ├── utils.py                    # utils variables and methods
-│   └── roberta.py                  # WordNet synonyms dictionary used for synonyms queries in ElasticSearch
-├── demo.py                         # demo script for the project
-├── indexer.py                      # script used for indexing tweets in ElasticSearch
-├── preprocessor.py                 # script used for manual pre-processing of tweets and query personalization phase
+│   ├── sentiment_extraction.py     # contiene i metodi utilizzati per estrarre il sentiment
+│   └── utils.py                    # contiene i metodi di tokenizatione e di standardizzazione del campo user_location
+├── app.py                          # script di configurazione della dashboard per le visualizzazioni
+├── indexer.py                      # script di avvio della dashboard per le visualizzazioni
+├── main.py                         # contiene tutte le fasi di processing eseguite sul dataset
 ├── README.md
 ├── requiments.txt
 └── .gitignore
 ```
 
-## Descrizione
-Il progetto mira a....
-Due dataset accorpati...
 
-
-### Componenti principali
-#### Elaborazione dei dati
+## Componenti principali
+### Processing dei dati
 L'elaborazione è finalizzata all'ottenimento di dataframe contenenti tutte le informazioni necessarie per la fase di visualizzazione e di analisi.
 Il file `main.py` contiene tutte le operazioni effettuate sui dati gerzzi, in particolare:
 1. Caricamento dei dati -> merging dei due dataset
@@ -46,8 +45,9 @@ Il file `main.py` contiene tutte le operazioni effettuate sui dati gerzzi, in pa
 
 I dataframe ottenuti vengono salvati nella cartella `"data/"` come oggetti *pickle* per alleggerire il carico della dashboard per le visualizzazioni.
 
-#### Visualizzazione ed analisi
-Per la parte di visualizzazione ed analisi è stata implementata una Dashboard multipagina. Il file `index.py` è il punto di avvio per la dashboard. Le pagine che la compongono sono contenute nella cartella `"apps/"`.
+### Visualizzazione ed analisi
+Per la parte di visualizzazione ed analisi è stata implementata una dashboard multipagina utilizzando la piattaforma Dash di Plotly. 
+La progettazione delle pagine è stata effettuata utilizzando il Bootstrap Component, mentre i grafici mediante le librerie messe a disposizione da Plotly. Il file `index.py` è il punto di avvio per la dashboard. Le pagine che la compongono sono contenute nella cartella `"apps/"`.
 
 
 ## Come avviare
@@ -56,26 +56,24 @@ Le librerie richieste per il progetto sono contenute nel file `requiments.txt`:
 ```
 pip install requiments.txt
 ```
-
-### Set-up
-- Download and install [Elasticsearch 7.10.1](https://www.elastic.co/downloads/elasticsearch)
-- For the synonym queries:
-    - move WordNet dictionary from `"utils/wn_s.pl"` to ElasticSearch source folder `"elasticsearch-*/config/"`
-- For the preprocessing section (`processor.py`):
-    - un-comment and download, only for the first execution, the following nltk packages
+Per le parti di preprocessing ed estrazione del sentiment è necessario effettuare il download di alcuni package aggiuntivi:
+- per NLTK, decommentando le seguenti righe di codice nello script `"utils/utils.py"`
     ```python
     nltk.download('stopwords')
     nltk.download('wordnet')
-    nltk.download('averaged_perceptron_tagger')
     ```
+- per il sentiment extraction, il modello addestrato di RoBERTa viene scaricato alla prima esecuzione del codice
 
+### Avvio dashboard
+La dash contenente le visualizzazioni va avviata eseguendo lo script `index.py`. Una volta inizializzato il server Flask, la pagina è visibile nel localhost http://127.0.0.1:8050/.
 
 
 ## Note
-- After the first execution the preprocessed tweets of given JSON are saved into *JSON_filename.pickle* file 
-in `"./utils/user-profiles"` optimize the execution time
-- After the first execution TfidfVectorized object for each user are saved into a .pickle file in 
-`"./utils/user-profile/*user_name*"` folder to optimize the execution time
 
-
-## Citations
+## Citazioni
+- Hutto, C.J. & Gilbert, E.E. (2014). VADER: A Parsimonious Rule-based Model for Sentiment Analysis of Social Media Text. Eighth International Conference on Weblogs and Social Media (ICWSM-14). Ann Arbor, MI, June 2014.
+- Rosenthal, Sara, Noura Farra, and Preslav Nakov. "SemEval-2017 task 4: Sentiment analysis in Twitter." Proceedings of the 11th international workshop on semantic evaluation (SemEval-2017). 2017.
+- Bird, Steven, Edward Loper and Ewan Klein (2009).
+Natural Language Processing with Python.  O'Reilly Media Inc.
+- Wolf, Thomas, et al. "Transformers: State-of-the-art natural language processing." Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing: System Demonstrations. 2020.
+- Dong, Ensheng, Hongru Du, and Lauren Gardner. "An interactive web-based dashboard to track COVID-19 in real time." The Lancet infectious diseases 20.5 (2020): 533-534.

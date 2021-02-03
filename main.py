@@ -12,7 +12,7 @@ from utils.sentiment_extraction import get_vader_sentiment, get_roberta_sentimen
 #### CARICAMENTO DATI
 ## Caricamento datasets
 pfizer = pd.read_csv('data/src/vaccination_tweets.csv', parse_dates=[4,9], infer_datetime_format=True)
-vacc = pd.read_csv('data/src/covidvaccine.csv', parse_dates=[3,8], infer_datetime_format=True)
+vacc = pd.read_csv('data/src/covidvaccine.csv', parse_dates=[3,8], infer_datetime_format=True, dayfirst=True)
 
 ## Join dei dataset
 comb = pd.concat([pfizer[vacc.columns], vacc], ignore_index=True)
@@ -25,7 +25,7 @@ data = comb.drop_duplicates(subset=['user_name','date','text'], keep='first', ig
 #data.head()
 #data.shape
 #data.dtypes
-data.info()
+#data.info()
 
 
 #### DATA CLEANING
@@ -40,15 +40,13 @@ data['country'] = get_countries(data['user_location'])
 ## Interpretazione array hashtags
 data['hashtags'] = data.hashtags.apply(eval)
 
-
 ## Estrazione tokens dal campo text
 data_tokens = pd.DataFrame(data['text'])
-data_tokens['text-tokens'] = data_tokens['text'].apply(get_tokens)
-
+data_tokens['tokens'] = data_tokens['text'].apply(get_tokens)
 
 ## Salvataggio dati
-#data.to_pickle('./data/data.pkl')
-#data_tokens.to_pickle('./data/data_tokens.pkl')
+data.to_pickle('./data/data.pkl')
+data_tokens.to_pickle('./data/data_tokens.pkl')
 
 
 #### SENTIMENT EXTRACTION
@@ -57,14 +55,13 @@ texts = pd.DataFrame(data['text'])
 
 ## VADER Sentiment extraction
 vsent = get_vader_sentiment(texts)
-#vsent.to_pickle('./data/vader_sent.pkl')
+vsent.to_pickle('./data/vader_sent.pkl')
 
 ## Twitter-RoBERTa Sentiment Extraction
 rsent = get_roberta_sentiment(texts)
-#rsent.to_pickle('./data/roberta_sent.pkl')
+rsent.to_pickle('./data/roberta_sent.pkl')
 
 '''
-
 
 '''
 #### CARICAMENTO DATI AUSILIARI
@@ -111,6 +108,7 @@ for data in test.index.tolist():
 sperem = pd.DataFrame({'date':date, 'iso_code':paesi,'death':morti})
 import pdb; pdb.set_trace()
 '''
+
 
 data = pd.read_pickle("data/data.pkl")
 vader_sent = pd.read_pickle("data/vader_sent.pkl")
