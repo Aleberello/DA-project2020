@@ -8,7 +8,6 @@ Alessandro Bertolo (808314) - a.bertolo2@campus.unimib.it
 ├── apps/                           # contiene le pagine principali che compongono la dashboard delle visualizzazioni
 │   ├── eda.py                      # pagina per l'EDA
 │   ├── home.py                     # pagina di homepage
-│   ├── misc.py                     # 
 │   └── sentiment.py                # pagina del sentiment extraction e analysis
 ├── data/                           # contiene i dataframe ottenuti
 │   ├── src/                        # contiene i csv dei dataset di partenza

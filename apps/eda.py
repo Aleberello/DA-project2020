@@ -15,11 +15,13 @@ from app import app
 
 ## Data loading
 data = pd.read_pickle("data/data.pkl")
+data_tokens = pd.read_pickle("data/data_tokens.pkl")
 
 num_usr = len(data.user_name.unique())
 num_tweets = len(data.text.unique())
 hashtags = data.hashtags.dropna().explode().value_counts().head(50).index.tolist() #top-50 hashtags list
 num_words = round(data.text.apply(lambda x: len(x.split())).mean())
+num_prepr_words = round(data_tokens.tokens.explode().groupby(data_tokens.tokens.explode().index).count().mean())
 
 
 ## Functions
@@ -105,11 +107,11 @@ def sourcePie(data):
     figPie = px.pie(sourcedf, values='COUNT', names='SOURCE', title='Principali fonti di provenienza dei tweets')
     return figPie
 
-
 def tweetTimeLine(data, tag):
     df = data.date.dt.date.value_counts().reset_index()
     df.columns=['DATE','COUNT']
     df = df.sort_values('DATE')
+    mean = round(df['COUNT'].mean())
     figLine = px.line(df, x='DATE', y='COUNT', title='Numero di tweets nel tempo')
 
     df2 = data.hashtags.dropna()
@@ -122,6 +124,10 @@ def tweetTimeLine(data, tag):
     figLine.add_scatter(x=df2.DATE, y=df2.COUNT, mode='lines', name=tag)
     figLine.update_traces(mode="markers+lines")
     figLine.update_layout(hovermode="x unified")
+
+    figLine.add_hline(y=mean, line_dash="dash", line_color="black   ",
+                    annotation_text=f"Media: {mean}", 
+                    annotation_position="top right")
     return figLine
 
 
@@ -159,13 +165,14 @@ def topHashtagsBar(data):
     return figBar
 
 
-def textWordcloud(data):
-    df = data.hashtags.dropna()
-    df = df.explode().value_counts()
-    #words_freq = data.text.str.split(expand=True).stack().value_counts()
+def textWordcloud(data,title):
+    if title=='hashtags':
+        df = data['hashtags'].dropna().explode().value_counts()
+    else:
+        df = data['tokens'].explode().value_counts()
     wc = WordCloud(width=800, height=400, background_color='white')
     wc.generate_from_frequencies(df)
-    fig = px.imshow(wc)
+    fig = px.imshow(wc, title=f"WordCloud {title}")
     fig.update_layout(coloraxis_showscale=False)
     fig.update_xaxes(showticklabels=False)
     fig.update_yaxes(showticklabels=False)
@@ -278,9 +285,11 @@ tweets_layout = dbc.Container([
     dbc.Row(
         dbc.Col([
             html.H4('Informazioni sui tweets'),
-            html.P(f"- Sono presenti {num_tweets} tweets unici.", className='px-3 mb-0'),
-            html.P(f"- Il numero medio di parole per tweet è di {num_words} parole, senza preprocessing del testo.",
-                    className='px-3'),
+            dcc.Markdown(f'''
+                - Sono presenti {num_tweets} tweets unici.
+                - Il numero medio di parole per tweet è di {num_words} parole. Eseguendo la tokenizzazione, il numero di
+                token medio per tweet è di {num_prepr_words} tokens.
+            '''),
             dbc.Row(
                 dbc.Col(
                     dcc.Graph(
@@ -289,7 +298,8 @@ tweets_layout = dbc.Container([
                     )
                 ),
                 align='center',
-                justify='center'
+                justify='center',
+                className='mb-3'
             ),
             dbc.Row(
                 dbc.Col(
@@ -301,9 +311,46 @@ tweets_layout = dbc.Container([
                 align='center',
                 justify='center'
             ),
-            dcc.Dropdown(
-                id='dropdown-hashtag',
-                options=[{'label': i, 'value': i} for i in hashtags]
+            dbc.Row(
+                dbc.Col(
+                    dash_table.DataTable(
+                        id='table-text-linechart',
+                        columns=[{"name": 'date', "id": 'date'}, {"name": 'text', "id": 'text'}],
+                        style_table={
+                            'overflowX' : 'auto',
+                            'width': '100%',
+                        },
+                        style_cell={
+                            'textAlign':'left',
+                            'whiteSpace': 'normal',
+                            'height': 'auto',
+                            'lineHeight': '15px',
+                        },
+                        style_header={
+                            'backgroundColor': 'rgb(230, 230, 230)',
+                            'fontWeight': 'bold'
+                        },
+                        page_size=5,
+                        sort_action="native",
+                        sort_mode="single",
+                    ),
+                    className="p-2 border shadow-sm rounded"
+                ),
+                align='center',
+                justify='center',
+                className='mb-3'
+            ),
+            dbc.Row(
+                dbc.Col([
+                    html.H5("Plot degli hashtags nel grafico con l'andamento temporale dei tweets.", className='mb-2'),
+                    dcc.Dropdown(
+                        id='dropdown-hashtag',
+                        options=[{'label': i, 'value': i} for i in hashtags]
+                    ),
+                ]),
+                align='center',
+                justify='center',
+                className='mb-3'
             ),
             dbc.Row([
                 dbc.Col(
@@ -329,7 +376,18 @@ tweets_layout = dbc.Container([
             dbc.Row(
                 dbc.Col(
                     dcc.Graph(
-                        figure=textWordcloud(data),
+                        figure=textWordcloud(data,'hashtags'),
+                        className='border shadow-sm rounded'
+                    )
+                ),
+                align='center',
+                justify='center',
+                className='mb-3'
+            ),
+            dbc.Row(
+                dbc.Col(
+                    dcc.Graph(
+                        figure=textWordcloud(data_tokens,'parole'),
                         className='border shadow-sm rounded'
                     )
                 ),
@@ -366,3 +424,18 @@ def updateFollowers(value):
     [Input('dropdown-hashtag', 'value')])
 def updateTag(value):
     return tweetTimeLine(data,value)
+
+# Date lineplot text field table
+@app.callback(
+    Output('table-text-linechart', 'data'),
+    Input('timeline', 'selectedData'))
+def displaySelectedData(selectedData):
+    if selectedData is None:
+        new_data = data[['date','text']].to_dict('records')
+    else:
+        date1 = selectedData['range']['x'][0]   
+        date2 = selectedData['range']['x'][1]
+        new_data = data.set_index('date').loc[date1:date2]['text'].sort_index().reset_index()[['date','text']]
+        new_data['date'] = new_data['date'].dt.date
+        new_data = new_data.to_dict('records')
+    return new_data

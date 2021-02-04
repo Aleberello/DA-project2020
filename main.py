@@ -111,7 +111,7 @@ import pdb; pdb.set_trace()
 
 
 data = pd.read_pickle("data/data.pkl")
-import pdb; pdb.set_trace() 
+
 vader_sent = pd.read_pickle("data/vader_sent.pkl")
 roberta_sent = pd.read_pickle("data/roberta_sent.pkl")
 
@@ -127,8 +127,15 @@ tabledata['comparison'] = tabledata[['sentiment_vader', 'sentiment_roberta']].ap
 
 polarity_change = tabledata[['sentiment_vader', 'sentiment_roberta']].apply(lambda x: True if (x[0]=='Positive' and x[1]=='Negative') or (x[0]=='Negative' and x[1]=='Positive') else False, axis=1)
 
+data = data_sent.copy()
+df = data[['user_name', 'user_followers']]
+df.columns=['USER','FOLLOWERS']
+df = df.groupby('USER').max().sort_values('FOLLOWERS', ascending=False).head(10).reset_index()
+tmp = []
+for user in df['USER'].unique().tolist():
+    tmp.append(data[data['user_name']==user].sentiment.value_counts().sort_values(ascending=False).head(1).index[0])
 
-
+df['SENTIMENT']=tmp
 
 import pdb; pdb.set_trace()
 

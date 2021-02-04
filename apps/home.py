@@ -25,8 +25,18 @@ layout = dbc.Container([
         dbc.Col([
             html.H4('Introduzione'),
             dcc.Markdown('''
-                Descrizione
-            #'''),
+                Dall’inizio della pandemia di Covid19, uno degli argomenti maggiormente trattato è quello dei vaccini. Social Networks come Twitter, in questi mesi, hanno subito un’accelerazione nella quantità di informazioni prodotte dagli utenti riguardanti la malattia e tutto ciò che la circonda. Risulta quindi interessante analizzare ciò che gli utenti scrivono a riguardo.  
+                Uno degli argomenti di maggior divisione sociale riguarda lo sviluppo del vaccino e la campagna vaccinale.
+                Tramite l’analisi di questi tweet il progetto mira a rispondere ad alcune domande:  
+                - è possibile identificare una tendenza preponderante nel sentiment dei tweets riferiti ai vaccini?
+                - in quali paesi l’argomento dei vaccini è più presente? è possibile identificare una polarità preponderante per ciascun paese?
+                - tra gli utenti con maggiore seguito, vi è una tendenza maggiore al sentiment positivo o negativo?  
+                  
+                Non avendo a disposizione dei dati già etichettati con il sentiment, ai fini del progetto è necessario classificare i tweets raccolti. Per farlo vengono utilizzati due metodologie. Le domande correlate sono quindi:
+                - dai due approcci di sentiment extraction si ottengono risultati simili?
+                - si riesce ad ottenere una buona astrazione? 
+                - quale dei due è migliore?
+            '''),
             dbc.Row(
                 dbc.Col(
                     dash_table.DataTable(

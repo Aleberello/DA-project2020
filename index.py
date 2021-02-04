@@ -4,7 +4,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 from app import app
-from apps import home, eda, sentiment, misc
+from apps import home, eda, sentiment
 
 
 app.layout = html.Div([
@@ -13,8 +13,7 @@ app.layout = html.Div([
             children=[
                 dbc.NavLink("Home", href="/", active="exact"),
                 dbc.NavLink("EDA", href="/eda", active="exact"),
-                dbc.NavLink("Sentiment analysis", href="/sentiment-analysis", active="exact"),
-                dbc.NavLink("Misc", href="/misc", active="exact")
+                dbc.NavLink("Sentiment Analysis", href="/sentiment-analysis", active="exact")
             ],
             brand="COVID19 Vaccine Tweets",
             color="dark",
@@ -60,8 +59,6 @@ def display_page(pathname):
         return eda.layout
     elif pathname == '/sentiment-analysis':
         return sentiment.layout
-    elif pathname == '/misc':
-        return misc.layout
     else:
         return dbc.Jumbotron([
             html.H1("404: Not found", className="text-danger"),
