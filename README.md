@@ -13,7 +13,7 @@ Alessandro Bertolo (808314) - a.bertolo2@campus.unimib.it
 ├── data/                           # contiene i dataframe ottenuti
 │   ├── src/                        # contiene i csv dei dataset di partenza
 │       ├── pandemy-data/           # contiene i csv sull'andamento dell'epidemia e delle campagne vaccinali 
-│       |   └── ...
+│       │   └── ...
 │       ├── covidvaccine.csv
 │       └── vaccination_tweets.csv
 │   ├── data_tokens.pkl             # dataframe contenente i token estratti dal tokenizer

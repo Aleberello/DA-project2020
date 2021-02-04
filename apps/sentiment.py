@@ -65,7 +65,6 @@ def sentBar(data1, data2):
     ))
     figBar.update_layout(barmode='group')
     figBar.update_traces(texttemplate='%{value} (%{text}%)', textposition='inside')
-
     return figBar
 
 def tweetTimeLineSent(data_sent):

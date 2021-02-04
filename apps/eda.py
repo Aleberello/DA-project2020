@@ -23,84 +23,87 @@ num_words = round(data.text.apply(lambda x: len(x.split())).mean())
 
 
 ## Functions
+# Users functions
+def verifiedPie(data):
+    df = data.drop_duplicates(subset=['user_name'], keep='first', ignore_index=True).user_verified.value_counts().reset_index()
+    df.columns=['STATUS','COUNT']
+    df.loc[df['STATUS']==True, ['STATUS']] = 'Verified'
+    df.loc[df['STATUS']==False, ['STATUS']] = 'Unverified'
+
+    figPie = px.pie(df, values='COUNT', names='STATUS', title='Utenti verificati',
+                    color='STATUS',
+                    color_discrete_map={'Verified':'#636EFA', 'Unverified':'#EF553B'})
+    return figPie
+
+def followersBar(data, num=10):
+    df = data[['user_name', 'user_followers', 'user_verified']]
+    df.columns=['USER','FOLLOWERS','STATUS']
+    df = df.groupby('USER').max().sort_values('FOLLOWERS', ascending=False).head(num)
+    df.loc[df['STATUS']==True, ['STATUS']] = 'Verified'
+    df.loc[df['STATUS']==False, ['STATUS']] = 'Unverified'
+
+    figBar = px.bar(df,
+                    x='FOLLOWERS', y=df.index, 
+                    orientation='h', color='STATUS',
+                    text='FOLLOWERS', title=f"Top-{num} account seguiti per numero di followers",
+                    color_discrete_map={'Verified':'#636EFA', 'Unverified':'#EF553B'})
+    figBar.update_traces(texttemplate='%{value}', textposition='inside')
+    figBar.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=True)
+    return figBar
+
+def uniqueUsersBar(data, num=10):
+    df = data[['user_name','user_verified']].value_counts().reset_index()
+    df.columns=['USER','STATUS','TWEETS']
+    df.loc[df['STATUS']==True, ['STATUS']] = 'Verified'
+    df.loc[df['STATUS']==False, ['STATUS']] = 'Unverified'
+
+    df = df.iloc[0:num]
+
+    figBar = px.bar(df,
+                    x='TWEETS', y="USER", 
+                    orientation='h', color='STATUS',
+                    text='TWEETS', title=f"Top-{num} account per numero di tweets",
+                    color_discrete_map={'Verified':'#636EFA', 'Unverified':'#EF553B'})
+    figBar.update_traces(texttemplate='%{value}', textposition='inside')
+    figBar.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=True)
+    return figBar
+
+def locationsMapPlot(data):
+    wmap = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/2014_world_gdp_with_codes.csv')
+    countrydf = data.country.value_counts().reset_index()
+    countrydf.columns=['CODE','TWEETS']
+    wmap_count = pd.merge(wmap, countrydf, how='left', on='CODE')
+    wmap_count = wmap_count.fillna(0)
+
+    figMap = px.choropleth(wmap_count, locations="CODE",color="TWEETS", hover_name="COUNTRY",
+                            color_continuous_scale=px.colors.sequential.Plasma,
+                            title='Nazioni di provenienza degli utenti per numero di tweets')
+    figMap.update_coloraxes(showscale=False)
+    return figMap
+
+def locationsBar(data, num):
+    df = data.country.value_counts().reset_index()
+    df.columns=['CODE','TWEETS']
+    df = df.iloc[0:num]
+
+    figBar = px.bar(df,
+                    x='TWEETS', y="CODE", 
+                    orientation='h', color='TWEETS',
+                    text='TWEETS', title=f"Top-{num} nazioni per numero di tweets",
+                    color_continuous_scale=px.colors.sequential.Plasma)
+    figBar.update_traces(texttemplate='%{value}', textposition='inside')
+    figBar.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=True)
+    return figBar
+
+
+# Tweets functions
 def sourcePie(data):
     sourcedf = data.source.value_counts().reset_index()
     sourcedf.columns=['SOURCE','COUNT']
     sourcedf.loc[sourcedf['COUNT'] < 1000, 'SOURCE'] = 'Other sources'
 
     figPie = px.pie(sourcedf, values='COUNT', names='SOURCE', title='Principali fonti di provenienza dei tweets')
-
-    figPie.update_layout({
-        'plot_bgcolor': 'rgba(0, 0, 0, 0)',
-        'paper_bgcolor': 'rgba(0, 0, 0, 0)',
-    })
     return figPie
-
-
-def uniqueUsersBar(data):
-    usersdf = data.user_name.value_counts().reset_index()
-    usersdf.columns=['USER','TWEET_COUNT']
-    usersdf = usersdf.iloc[0:10]
-    #others = usersdf[usersdf['TWEET_COUNT'] < 100]
-    #usersdf = usersdf.drop(others.index)
-    #usersdf = usersdf.append({'USER':'Others', 'TWEET_COUNT':others['TWEET_COUNT'].sum()}, ignore_index=True)
-    #usersdf['PERC'] = np.around(((usersdf['TWEET_COUNT'] / len(data))*100),decimals=2)
-
-    figBar = px.bar(usersdf,
-                    x='TWEET_COUNT', y="USER", 
-                    orientation='h',
-                    text='TWEET_COUNT', title="Top-10 account per numero di tweets")
-    figBar.update_traces(texttemplate='%{value}', textposition='inside')
-    figBar.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
-    figBar.update_layout({
-        #'plot_bgcolor': 'rgba(0, 0, 0, 0)',
-        'paper_bgcolor': 'rgba(0, 0, 0, 0)',
-    })
-    return figBar
-
-
-def locationsMapPlot(data):
-    wmap = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/2014_world_gdp_with_codes.csv')
-    countrydf = data.country.value_counts().reset_index()
-    countrydf.columns=['CODE','TWEET_COUNT']
-    wmap_count = pd.merge(wmap, countrydf, how='left', on='CODE')
-    wmap_count = wmap_count.fillna(0)
-
-    figMap = px.choropleth(wmap_count, locations="CODE",color="TWEET_COUNT", hover_name="COUNTRY",
-                            color_continuous_scale=px.colors.sequential.Plasma)
-    return figMap
-
-
-def verifiedPie(data):
-    df = data.user_verified.value_counts().reset_index()
-    df.columns=['STATUS','COUNT']
-    df.loc[df['STATUS']==True, ['STATUS']] = 'Verified'
-    df.loc[df['STATUS']==False, ['STATUS']] = 'Unverified'
-
-    figPie = px.pie(df, values='COUNT', names='STATUS', title='Utenti verificati')
-
-    figPie.update_layout({
-        'plot_bgcolor': 'rgba(0, 0, 0, 0)',
-        'paper_bgcolor': 'rgba(0, 0, 0, 0)',
-    })
-    return figPie
-
-
-def followersBar(data, num=10):
-    df = data[['user_name','user_followers']]
-    df = df.groupby('user_name').max().sort_values('user_followers', ascending=False).head(num)
-
-    figBar = px.bar(df,
-                    x='user_followers', y=df.index, 
-                    orientation='h',
-                    text='user_followers', title=f"Top-{num} account seguiti per numero di followers")
-    figBar.update_traces(texttemplate='%{value}', textposition='inside')
-    figBar.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
-    figBar.update_layout({
-        #'plot_bgcolor': 'rgba(0, 0, 0, 0)',
-        'paper_bgcolor': 'rgba(0, 0, 0, 0)',
-    })
-    return figBar
 
 
 def tweetTimeLine(data, tag):
@@ -119,7 +122,6 @@ def tweetTimeLine(data, tag):
     figLine.add_scatter(x=df2.DATE, y=df2.COUNT, mode='lines', name=tag)
     figLine.update_traces(mode="markers+lines")
     figLine.update_layout(hovermode="x unified")
-
     return figLine
 
 
@@ -154,10 +156,6 @@ def topHashtagsBar(data):
                     text='COUNT', title="Top-10 hashtags utilizzati")
     figBar.update_traces(texttemplate='%{value}', textposition='inside')
     figBar.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
-    figBar.update_layout({
-        #'plot_bgcolor': 'rgba(0, 0, 0, 0)',
-        'paper_bgcolor': 'rgba(0, 0, 0, 0)',
-    })
     return figBar
 
 
@@ -181,7 +179,7 @@ layout = dbc.Container([
     dbc.Row(
         dbc.Col([
             html.H1('EDA', className='text-white'),
-            html.P('Grafici di Explorative Data Analysis eseguiti sul dataset.', className='mb-0 text-white')
+            html.P('Explorative Data Analysis divisa tra utenti e tweets.', className='mb-0 text-white')
         ]),
         className='py-3 mb-3 bg-dark shadow rounded',
     ),
@@ -202,7 +200,7 @@ users_layout = dbc.Container([
     dbc.Row(
         dbc.Col([
             html.H4('Informazioni sugli utenti'),
-            html.P(f"Sono presenti {num_usr} utenti unici."),
+            html.P(f"Nel dataset sono presenti {num_usr} utenti unici."),
             dbc.Row([
                 dbc.Col(
                     dcc.Graph(
@@ -214,7 +212,7 @@ users_layout = dbc.Container([
                 ),
                 dbc.Col(
                     dcc.Graph(
-                        figure=uniqueUsersBar(data),
+                        id='slider-unique-bar',
                         className='border shadow-sm rounded px-2'
                     ),
                     align='center',
@@ -242,11 +240,33 @@ users_layout = dbc.Container([
                             20: '20',
                             50: '50'
                         },
-                        className='border-bottom border-right border-left shadow-sm rounded-bottom px-2'
+                        className='border-bottom border-right border-left shadow-sm rounded-bottom p-4'
                     )
                 ]),
                 align='center',
-                justify='center'
+                justify='center',
+                className='mb-3'
+            ),
+            dbc.Row([
+                dbc.Col(
+                    dcc.Graph(
+                        figure=locationsMapPlot(data),
+                        className='border shadow-sm rounded'
+                    ),
+                    align='center',
+                    width=6
+                ),
+                dbc.Col(
+                    dcc.Graph(
+                        id='slide-loc-bar',
+                        className='border shadow-sm rounded px-2'
+                    ),
+                    align='center',
+                    width=6
+                )],
+                align='center',
+                justify='center',
+                className='mb-3'
             ),
         ]),
         className='p-4 mb-3 bg-white rounded-bottom shadow'
@@ -265,16 +285,6 @@ tweets_layout = dbc.Container([
                 dbc.Col(
                     dcc.Graph(
                         figure=sourcePie(data),
-                        className='border shadow-sm rounded'
-                    )
-                ),
-                align='center',
-                justify='center'
-            ),
-            dbc.Row(
-                dbc.Col(
-                    dcc.Graph(
-                        figure=locationsMapPlot(data),
                         className='border shadow-sm rounded'
                     )
                 ),
@@ -345,10 +355,10 @@ def render_content(tab):
 
 # Bar plot slider
 @app.callback(
-    Output('slider-followers-bar', 'figure'),
+    [Output('slider-followers-bar', 'figure'), Output('slider-unique-bar', 'figure'), Output('slide-loc-bar', 'figure')],
     [Input('my-slider', 'value')])
 def updateFollowers(value):
-    return followersBar(data,value)
+    return [followersBar(data,value), uniqueUsersBar(data,value), locationsBar(data,value)]
 
 # Date lineplot dropdown
 @app.callback(
