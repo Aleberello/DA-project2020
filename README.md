@@ -25,7 +25,7 @@ Alessandro Bertolo (808314) - a.bertolo2@campus.unimib.it
 │   ├── sentiment_extraction.py     # contiene i metodi utilizzati per estrarre il sentiment
 │   └── utils.py                    # contiene i metodi di tokenizatione e di standardizzazione del campo user_location
 ├── app.py                          # script di configurazione della dashboard per le visualizzazioni
-├── indexer.py                      # script di avvio della dashboard per le visualizzazioni
+├── index.py                      # script di avvio della dashboard per le visualizzazioni
 ├── main.py                         # contiene tutte le fasi di processing eseguite sul dataset
 ├── README.md
 ├── requiments.txt
