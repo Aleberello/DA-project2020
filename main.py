@@ -64,9 +64,8 @@ rsent = get_roberta_sentiment(texts)
 
 
 
-
 '''
-############## SVILUPPI FUTURI
+#### SVILUPPI FUTURI
 ## Estrazione BERTtweet sentence embedding e K-Means per identificare cluster e sentiment
 import torch
 from transformers import AutoModel, AutoTokenizer 
@@ -84,7 +83,7 @@ with torch.no_grad():
     features = bertweet(input_ids)  # Models outputs are now tuples
 
 
-### CARICAMENTO DATI AUSILIARI
+#### CARICAMENTO DATI AUSILIARI
 
 ### Andamento della campagna vaccinale mondiale
 vaccinations = pd.read_csv('data/src/pandemy-data/country_vaccinations.csv', 
@@ -103,25 +102,12 @@ cases = pd.read_csv('data/src/pandemy-data/time_series_covid19_confirmed_global.
 #recovered = pd.read_csv('data/src/pandemy-data/time_series_covid19_recovered_global.csv')
 #death = pd.read_csv('data/src/pandemy-data/time_series_covid19_deaths_global.csv')
 look_tbl = pd.read_csv('data/src/pandemy-data/UID_ISO_FIPS_LookUp_Table.csv')
- 
+
 look_tbl = look_tbl.drop_duplicates(subset=['Country_Region'], keep='first', ignore_index=True).set_index('Country_Region')
 
 cases['iso_code'] = cases['Country/Region'].apply(lambda x : look_tbl.loc[x].iso3)
 cases = cases.dropna(subset=['iso_code']) # rimuove elementi non riconducibili a paesi
 cases = cases.drop(columns=['Province/State','Lat','Long', 'Country/Region'])
 cases = cases.groupby('iso_code').sum() # raggruppa per iso_code
-
-test = cases.T
-
-date = []
-paesi = []
-morti = []
-for data in test.index.tolist():
-    tmp = test.loc[data]
-    date.extend([data]*len(tmp))
-    paesi.extend(tmp.index.tolist())
-    morti.extend(tmp.values.tolist())
-
-sperem = pd.DataFrame({'date':date, 'iso_code':paesi,'death':morti})
 
 '''
